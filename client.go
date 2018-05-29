@@ -39,8 +39,8 @@ func NewSpannerClient(opt *SpannerClientOptions) (*spannerClient, error) {
 	}
 
 	return &spannerClient{
-		c,
-		opt,
+		client: c,
+		options: opt,
 	}, nil
 }
 
@@ -80,7 +80,7 @@ func (c spannerClient) FindOne(ctx context.Context, statement spanner.Statement,
 		return err
 	}
 
-	// 複数の結果が返ってきたときはエラーを返す
+	// An error is returned When multiple results
 	_, err = rows.Next()
 	if err != iterator.Done {
 		return status.Error(codes.Aborted, "multiple data found")
