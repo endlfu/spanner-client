@@ -27,11 +27,11 @@ type SpannerClientOptions struct {
 }
 
 const (
-	database_templete = "projects/%s/instances/%s/databases/%s"
+	databaseTemplate = "projects/%s/instances/%s/databases/%s"
 )
 
 func NewSpannerClient(opt *SpannerClientOptions) (*spannerClient, error) {
-	db := fmt.Sprintf(database_templete, opt.ProjectID, opt.ProjectID, opt.Db)
+	db := fmt.Sprintf(databaseTemplate, opt.ProjectID, opt.ProjectID, opt.Db)
 	c, err := spanner.NewClient(opt.Context, db, opt.Opts...)
 
 	if err != nil {
