@@ -143,31 +143,19 @@ func (c spannerClient) Insert(ctx context.Context, tableName string, ir interfac
 	return nil
 }
 
-func (c spannerClient) Delete(ctx context.Context, tableName string, key string) error {
-	k := spanner.Key{key}
-	ms := []*spanner.Mutation{
-		spanner.Delete(tableName, k),
+func (c spannerClient) Delete(ctx context.Context, tableName string, key spanner.Key) error {
+	keys := []spanner.Key{key}
+	return c.DeleteMulti(ctx, tableName, keys)
+}
+
+func (c spannerClient) DeleteMulti(ctx context.Context, table string, keys []spanner.Key) error {
+	ms := make([]*spanner.Mutation, 0, len(keys))
+	for _, key := range keys {
+		ms = append(ms, spanner.Delete(table, key))
 	}
 
 	_, err := c.client.Apply(ctx, ms)
 	return err
-}
-
-// TODO
-func (c spannerClient) deleteMulti(ctx context.Context, table string, keys []spanner.Key) error {
-	mutations := make([]*spanner.Mutation, 0, len(keys))
-	for _, key := range keys {
-		mutations = append(mutations, spanner.Delete(table, key))
-	}
-
-	/*
-	err := c.client.Apply(ctx, )
-	if err != nil {
-		return err
-	}
-	*/
-
-	return nil
 }
 
 func getColsFromStruct(src interface{}) ([]string, error) {
@@ -180,7 +168,6 @@ func getColsFromStruct(src interface{}) ([]string, error) {
 	if dataType := reflectStruct.Kind(); dataType != reflect.Struct {
 		return nil, fmt.Errorf("Unsupported data type %s", dataType.String())
 	}
-
 	var cols []string
 	for i := 0; i < reflectStruct.NumField(); i++ {
 		cols = append(cols, reflectStruct.Field(i).Name)

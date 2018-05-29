@@ -23,11 +23,11 @@ func TestSpanner(t *testing.T) {
 	did,_ := syscall.Getenv("SPANNER_DATABASE_ID")
 	ctx := context.Background()
 	c, err := NewSpannerClient(&SpannerClientOptions{
-		ctx,
-		pid,
-		id,
-		did,
-		[]option.ClientOption{},
+		Context: ctx,
+		ProjectID: pid,
+		InstanceID: id,
+		Db: did,
+		Opts: []option.ClientOption{},
 	})
 	assert.NoError(err)
 
@@ -50,6 +50,6 @@ func TestSpanner(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(ir, ir2)
 
-	err = c.Delete(ctx, "test", "123456")
+	err = c.Delete(ctx, "test", spanner.Key{"123456"})
 	assert.NoError(err)
 }
