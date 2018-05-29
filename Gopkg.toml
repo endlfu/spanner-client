@@ -11,6 +11,10 @@
   branch = "master"
   name = "github.com/pkg/errors"
 
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

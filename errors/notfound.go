@@ -28,7 +28,3 @@ func (e *NotFoundError) Error() string {
 func (*NotFoundError) NotFoundError() bool {
 	return true
 }
-
-func (*NotFoundError) ClientError() bool {
-	return true
-}

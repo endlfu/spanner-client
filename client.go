@@ -117,14 +117,19 @@ func (c spannerClient) Update(ctx context.Context, tableName string, ir interfac
 func (c spannerClient) Insert(ctx context.Context, tableName string, ir interface{}) error {
 	cols, err := getColsFromStruct(ir)
 	if err != nil {
-		return err
+		return errors.NewInvalidStructError(err.Error())
 	}
 
 	v := reflect.ValueOf(ir)
 
 	vals := []interface{}{}
 	for _, e := range cols {
-		vals = append(vals, v.FieldByName(e).Interface())
+		if v.FieldByName(e).CanInterface() {
+			vals = append(vals, v.FieldByName(e).Interface())
+		} else {
+			msg := "ir is invalid, first character of the identifier's name is a Unicode upper case letter"
+			return errors.NewInvalidStructError(msg)
+		}
 	}
 
 	_, err = c.client.Apply(ctx, []*spanner.Mutation{
@@ -134,6 +139,33 @@ func (c spannerClient) Insert(ctx context.Context, tableName string, ir interfac
 	if err != nil {
 		return errors.NewClientError(err.Error())
 	}
+
+	return nil
+}
+
+func (c spannerClient) Delete(ctx context.Context, tableName string, key string) error {
+	k := spanner.Key{key}
+	ms := []*spanner.Mutation{
+		spanner.Delete(tableName, k),
+	}
+
+	_, err := c.client.Apply(ctx, ms)
+	return err
+}
+
+// TODO
+func (c spannerClient) deleteMulti(ctx context.Context, table string, keys []spanner.Key) error {
+	mutations := make([]*spanner.Mutation, 0, len(keys))
+	for _, key := range keys {
+		mutations = append(mutations, spanner.Delete(table, key))
+	}
+
+	/*
+	err := c.client.Apply(ctx, )
+	if err != nil {
+		return err
+	}
+	*/
 
 	return nil
 }

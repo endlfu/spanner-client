@@ -16,6 +16,12 @@
   version = "v0.22.0"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -35,6 +41,18 @@
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
+
+[[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "c679ae2cc0cb27ec3293fea7e254e47386f05d69"
 
 [[projects]]
   name = "go.opencensus.io"
@@ -66,7 +84,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "9ef9f5bb98a1fdc41f8cf6c250a4404b4085e389"
+  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [[projects]]
   branch = "master"
@@ -177,6 +195,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a92702da116ec2222652ffc6306e74dcf92ea542e2e85e865df78855ed0c49fa"
+  inputs-digest = "f5a3b8f5a16b12a58e74d61a607630999c8358625c310ce28c8ac7b1d591bdd9"
   solver-name = "gps-cdcl"
   solver-version = 1
