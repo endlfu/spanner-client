@@ -120,20 +120,35 @@ func (c spannerClient) Insert(ctx context.Context, tableName string, ir interfac
 		return errors.NewInvalidStructError(err.Error())
 	}
 
-	v := reflect.ValueOf(ir)
-
-	vals := []interface{}{}
-	for _, e := range cols {
-		if v.FieldByName(e).CanInterface() {
-			vals = append(vals, v.FieldByName(e).Interface())
-		} else {
-			msg := "ir is invalid, first character of the identifier's name is a Unicode upper case letter"
-			return errors.NewInvalidStructError(msg)
-		}
+	vals, err := getValuesFromStruct(ir, cols)
+	if err != nil {
+		return err
 	}
 
 	_, err = c.client.Apply(ctx, []*spanner.Mutation{
 		spanner.Insert(tableName, cols, vals),
+	})
+
+	if err != nil {
+		return errors.NewClientError(err.Error())
+	}
+
+	return nil
+}
+
+func (c spannerClient) InsertOrUpdate(ctx context.Context, tableName string, ir interface{}) error {
+	cols, err := getColsFromStruct(ir)
+	if err != nil {
+		return errors.NewInvalidStructError(err.Error())
+	}
+
+	vals, err := getValuesFromStruct(ir, cols)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.client.Apply(ctx, []*spanner.Mutation{
+		spanner.InsertOrUpdate(tableName, cols, vals),
 	})
 
 	if err != nil {
@@ -158,6 +173,23 @@ func (c spannerClient) DeleteMulti(ctx context.Context, table string, keys []spa
 	return err
 }
 
+func (c spannerClient) Truncate(ctx context.Context, tableNames []string) error {
+	var m []*spanner.Mutation
+	for _, table := range tableNames {
+		m = append(m, spanner.Delete(table, spanner.AllKeys()))
+	}
+
+	_, err := c.client.ReadWriteTransaction(ctx,
+		func(ctx context.Context, txn *spanner.ReadWriteTransaction) error {
+			return txn.BufferWrite(m)
+		})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func getColsFromStruct(src interface{}) ([]string, error) {
 	reflectStruct := reflect.ValueOf(src).Type()
 
@@ -175,3 +207,21 @@ func getColsFromStruct(src interface{}) ([]string, error) {
 
 	return cols, nil
 }
+
+func getValuesFromStruct(src interface{}, cols []string) ([]interface{}, error) {
+	v := reflect.ValueOf(src)
+
+	vals := []interface{}{}
+	for _, e := range cols {
+		if v.FieldByName(e).CanInterface() {
+			vals = append(vals, v.FieldByName(e).Interface())
+		} else {
+			msg := "ir is invalid, first character of the identifier's name is a Unicode upper case letter"
+			return nil, errors.NewInvalidStructError(msg)
+		}
+	}
+
+	return vals, nil
+}
+
+

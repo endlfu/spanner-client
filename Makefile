@@ -1,6 +1,8 @@
 
+TESTPKGS = $(shell go list ./)
+
 GOTEST ?= go test
 TARGET := .
 
 test:
-	@$(GOTEST) -run=$(TARGET) -v .
+	@$(GOTEST) -v -race -run=$(TARGET) $(TESTPKGS)
