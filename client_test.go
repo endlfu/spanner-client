@@ -1,12 +1,12 @@
 package spanner
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"context"
-	"google.golang.org/api/option"
+	"github.com/stretchr/testify/assert"
 	"cloud.google.com/go/spanner"
 	"syscall"
+	"google.golang.org/api/option"
 )
 
 type testStruct struct {
@@ -15,26 +15,12 @@ type testStruct struct {
 	Text string
 }
 
-var client *spannerClient
-
-func TestMain(m *testing.M) {
-	pid,_ := syscall.Getenv("PROJECT_ID")
-	id,_ := syscall.Getenv("SPANNER_INSTANCE_ID")
-	did,_ := syscall.Getenv("SPANNER_DATABASE_ID")
-	ctx := context.Background()
-
-	client, _ = NewSpannerClient(&SpannerClientOptions{
-		Context: ctx,
-		ProjectID: pid,
-		InstanceID: id,
-		Db: did,
-		Opts: []option.ClientOption{},
-	})
-}
-
 func TestSpanner(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
+
+	client := newClient(ctx)
+	client.Truncate(ctx, []string{"test"})
 
 	ir := testStruct{
 		Id: "123456",
@@ -68,6 +54,9 @@ func TestSpannerClient_InsertOrUpdate(t *testing.T) {
 		Num: 1234,
 	}
 
+	client := newClient(ctx)
+	client.Truncate(ctx, []string{"test"})
+
 	err := client.InsertOrUpdate(ctx, "test", ir)
 	assert.NoError(err)
 
@@ -89,5 +78,21 @@ func TestSpannerClient_InsertOrUpdate(t *testing.T) {
 	ir3 := testStruct{}
 	err = client.FindOne(ctx, s, &ir3)
 	assert.NoError(err)
-	assert.Equal(ir, ir2)
+	assert.Equal(ir, ir3)
+}
+
+func newClient(ctx context.Context) *spannerClient {
+	pid,_ := syscall.Getenv("PROJECT_ID")
+	id,_ := syscall.Getenv("SPANNER_INSTANCE_ID")
+	did,_ := syscall.Getenv("SPANNER_DATABASE_ID")
+
+	client, _ := NewSpannerClient(&SpannerClientOptions{
+		Context: ctx,
+		ProjectID: pid,
+		InstanceID: id,
+		Db: did,
+		Opts: []option.ClientOption{},
+	})
+
+	return client
 }

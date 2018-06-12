@@ -114,6 +114,16 @@ func (c spannerClient) Update(ctx context.Context, tableName string, ir interfac
 	return nil
 }
 
+func (c spannerClient) Apply(ctx context.Context, tableName string, mutation []*spanner.Mutation) error {
+	_, err := c.client.Apply(ctx, mutation)
+
+	if err != nil {
+		return errors.NewClientError(err.Error())
+	}
+
+	return nil
+}
+
 func (c spannerClient) Insert(ctx context.Context, tableName string, ir interface{}) error {
 	cols, err := getColsFromStruct(ir)
 	if err != nil {
