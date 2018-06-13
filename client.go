@@ -219,12 +219,12 @@ func getColsFromStruct(src interface{}) ([]string, error) {
 }
 
 func getValuesFromStruct(src interface{}, cols []string) ([]interface{}, error) {
-	v := reflect.ValueOf(src)
+	v := reflect.Indirect(reflect.ValueOf(src))
 
 	vals := []interface{}{}
 	for _, e := range cols {
 		if v.FieldByName(e).CanInterface() {
-			vals = append(vals, v.FieldByName(e).Interface())
+			vals = append(vals, reflect.Indirect(v.FieldByName(e)).Interface())
 		} else {
 			msg := "ir is invalid, first character of the identifier's name is a Unicode upper case letter"
 			return nil, errors.NewInvalidStructError(msg)
