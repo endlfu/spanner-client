@@ -10,7 +10,10 @@
     "internal/fields",
     "internal/protostruct",
     "internal/version",
-    "spanner"
+    "longrunning",
+    "longrunning/autogen",
+    "spanner",
+    "spanner/admin/database/apiv1"
   ]
   revision = "056a55f54a6cc77b440b31a56a5e7c3982d32811"
   version = "v0.22.0"
@@ -37,6 +40,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/googleapis/gax-go"
+  packages = ["."]
+  revision = "317e0006254c44a0ac427cc52a0e083ff0b9622f"
+  version = "v2.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -57,9 +66,12 @@
 [[projects]]
   name = "go.opencensus.io"
   packages = [
+    "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
     "plugin/ocgrpc",
+    "plugin/ochttp",
+    "plugin/ochttp/propagation/b3",
     "stats",
     "stats/internal",
     "stats/view",
@@ -123,10 +135,13 @@
   branch = "master"
   name = "google.golang.org/api"
   packages = [
+    "googleapi/transport",
     "internal",
     "iterator",
     "option",
-    "transport/grpc"
+    "transport",
+    "transport/grpc",
+    "transport/http"
   ]
   revision = "348810ff778af56686d572415ce79e6c9fad9613"
 
@@ -154,8 +169,11 @@
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
+    "googleapis/iam/v1",
+    "googleapis/longrunning",
     "googleapis/rpc/errdetails",
     "googleapis/rpc/status",
+    "googleapis/spanner/admin/database/v1",
     "googleapis/spanner/v1"
   ]
   revision = "694d95ba50e67b2e363f3483057db5d4910c18f9"
@@ -195,6 +213,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f5a3b8f5a16b12a58e74d61a607630999c8358625c310ce28c8ac7b1d591bdd9"
+  inputs-digest = "3c7055acd07cdd1bffe1d311dad062413a095bb1dfe01fd2572880dbcebcfedc"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,5 +1,5 @@
 
-TESTPKGS = $(shell go list ./)
+TESTPKGS = $(shell go list ./ ./admin)
 
 GOTEST ?= go test
 TARGET := .
