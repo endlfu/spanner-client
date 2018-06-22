@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"github.com/endlfu/spanner_client/errors"
+	"log"
 )
 
 type spannerClient struct {
@@ -91,7 +92,7 @@ func (c spannerClient) FindOne(ctx context.Context, statement spanner.Statement,
 }
 
 func (c spannerClient) Update(ctx context.Context, tableName string, ir interface{}) error {
-	cols, err := getColsFromStruct(ir)
+	cols, dbcols, err := getColsFromStruct(ir)
 	if err != nil {
 		return err
 	}
@@ -104,7 +105,7 @@ func (c spannerClient) Update(ctx context.Context, tableName string, ir interfac
 	}
 
 	_, err = c.client.Apply(ctx, []*spanner.Mutation{
-		spanner.Update(tableName, cols, vals),
+		spanner.Update(tableName, dbcols, vals),
 	})
 
 	if err != nil {
@@ -125,18 +126,19 @@ func (c spannerClient) Apply(ctx context.Context, tableName string, mutation []*
 }
 
 func (c spannerClient) Insert(ctx context.Context, tableName string, ir interface{}) error {
-	cols, err := getColsFromStruct(ir)
+	cols, dbcols, err := getColsFromStruct(ir)
 	if err != nil {
 		return errors.NewInvalidStructError(err.Error())
 	}
 
+	log.Printf("%+v", cols)
 	vals, err := getValuesFromStruct(ir, cols)
 	if err != nil {
 		return err
 	}
 
 	_, err = c.client.Apply(ctx, []*spanner.Mutation{
-		spanner.Insert(tableName, cols, vals),
+		spanner.Insert(tableName, dbcols, vals),
 	})
 
 	if err != nil {
@@ -147,7 +149,7 @@ func (c spannerClient) Insert(ctx context.Context, tableName string, ir interfac
 }
 
 func (c spannerClient) InsertOrUpdate(ctx context.Context, tableName string, ir interface{}) error {
-	cols, err := getColsFromStruct(ir)
+	cols, dbcols, err := getColsFromStruct(ir)
 	if err != nil {
 		return errors.NewInvalidStructError(err.Error())
 	}
@@ -158,7 +160,7 @@ func (c spannerClient) InsertOrUpdate(ctx context.Context, tableName string, ir 
 	}
 
 	_, err = c.client.Apply(ctx, []*spanner.Mutation{
-		spanner.InsertOrUpdate(tableName, cols, vals),
+		spanner.InsertOrUpdate(tableName, dbcols, vals),
 	})
 
 	if err != nil {
@@ -200,22 +202,31 @@ func (c spannerClient) Truncate(ctx context.Context, tableNames []string) error 
 	return nil
 }
 
-func getColsFromStruct(src interface{}) ([]string, error) {
+func getColsFromStruct(src interface{}) ([]string, []string, error) {
 	reflectStruct := reflect.ValueOf(src).Type()
 
 	if reflectStruct.Kind() == reflect.Ptr {
 		reflectStruct = reflectStruct.Elem()
 	}
 
-	if dataType := reflectStruct.Kind(); dataType != reflect.Struct {
-		return nil, fmt.Errorf("Unsupported data type %s", dataType.String())
-	}
 	var cols []string
-	for i := 0; i < reflectStruct.NumField(); i++ {
-		cols = append(cols, reflectStruct.Field(i).Name)
+	var dbcols []string
+	if dataType := reflectStruct.Kind(); dataType != reflect.Struct {
+		return cols, dbcols, fmt.Errorf("Unsupported data type %s", dataType.String())
 	}
 
-	return cols, nil
+	for i := 0; i < reflectStruct.NumField(); i++ {
+		f := reflectStruct.Field(i)
+		t := f.Tag.Get("spanner")
+		if t == "" {
+			dbcols = append(dbcols, f.Name)
+		} else {
+			dbcols = append(dbcols, t)
+		}
+		cols =  append(cols, f.Name)
+	}
+
+	return cols, dbcols, nil
 }
 
 func getValuesFromStruct(src interface{}, cols []string) ([]interface{}, error) {

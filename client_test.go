@@ -15,6 +15,12 @@ type testStruct struct {
 	Text string
 }
 
+type testTagStruct struct {
+	Id string `spanner:"Id"`
+	Number int64 `spanner:"Num"`
+	Body string `spanner:"Text"`
+}
+
 func TestSpanner(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -40,6 +46,38 @@ func TestSpanner(t *testing.T) {
 	err = client.FindOne(ctx, s, &ir2)
 	assert.NoError(err)
 	assert.Equal(ir, ir2)
+
+	err = client.Delete(ctx, "test", spanner.Key{"123456"})
+	assert.NoError(err)
+}
+
+func TestTagSpanner(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+
+	client := newClient(ctx)
+	client.Truncate(ctx, []string{"test"})
+
+	ir := testTagStruct{
+		Id: "123456",
+		Body: "test text",
+		Number: 1234,
+	}
+	err := client.Insert(ctx, "test", ir)
+	assert.NoError(err)
+
+	ir2 := testTagStruct{}
+	s := spanner.Statement{
+		SQL : "SELECT * FROM test WHERE Id = @Id",
+		Params : map[string]interface{}{
+			"Id": ir.Id,
+		},
+	}
+	err = client.FindOne(ctx, s, &ir2)
+	assert.NoError(err)
+	assert.Equal(ir.Id, ir2.Id)
+	assert.Equal(ir.Number, ir2.Number)
+	assert.Equal(ir.Body, ir2.Body)
 
 	err = client.Delete(ctx, "test", spanner.Key{"123456"})
 	assert.NoError(err)
